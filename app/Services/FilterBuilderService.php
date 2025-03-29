@@ -12,39 +12,45 @@ class FilterBuilderService
     public function applyFilters(Builder $query, string $filterExpression): void
     {
         $filterExpression = preg_replace("/\s+/", " ", strtolower($filterExpression));
-
         $filters = $this->splitByLogicalOps($filterExpression);
         $this->buildQuery($query, $filters);
     }
 
-    private function splitByLogicalOps($str)
+    private function splitByLogicalOps($expression)
     {
-        if (str_contains($str, ' or ') || str_contains($str, ' and ')) {
-            $dividedByOrExpressions = $this->splitBy($str, ' or ');
+        if (str_contains($expression, ' or ') || str_contains($expression, ' and ')) {
+            $dividedByOrExpressions = $this->splitBy($expression, ' or ');
 
             if (count($dividedByOrExpressions) > 1) {
                 $ops = [];
-
                 foreach ($dividedByOrExpressions as $dividedByOrExpression) {
-                    $dividedByAndExpressions = $this->splitBy($dividedByOrExpression, ' and ');
-                    if (count($dividedByAndExpressions) > 1) {
-                        $ands = [];
-                        foreach ($dividedByAndExpressions as $dividedByAndExpression) {
-                            $dividedByAndExpression = $this->removeParentheses($dividedByAndExpression);
-                            $ands['and'][] = $this->splitByLogicalOps($dividedByAndExpression);
-                        }
-                        $ops['or'][] = $ands;
-                    }
-                    else {
-                        $ops['or'][] = $dividedByOrExpression;
-                    }
+                    $ops['or'][] = $this->splitByAnd($dividedByOrExpression);
                 }
-
                 return $ops;
+            }
+            else {
+                return $this->splitByAnd($expression);
             }
         }
 
-        return $this->removeParentheses($str);
+        return $this->removeParentheses($expression);
+    }
+
+    private function splitByAnd($expression)
+    {
+        $splittedByAnd = $expression;
+
+        $dividedByAndExpressions = $this->splitBy($expression, ' and ');
+        if (count($dividedByAndExpressions) > 1) {
+            $ands = [];
+            foreach ($dividedByAndExpressions as $dividedByAndExpression) {
+                $dividedByAndExpression = $this->removeParentheses($dividedByAndExpression);
+                $ands['and'][] = $this->splitByLogicalOps($dividedByAndExpression);
+            }
+            $splittedByAnd = $ands;
+        }
+
+        return $splittedByAnd;
     }
 
     private function buildQuery(Builder $query, $filters): void
