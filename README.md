@@ -238,6 +238,8 @@ composer install
 3\. Configure environment:
 ```bash
 cp .env.example .env
+```
+```bash
 php artisan key:generate
 ```
 Make sure to add your database credentials in .env file.
