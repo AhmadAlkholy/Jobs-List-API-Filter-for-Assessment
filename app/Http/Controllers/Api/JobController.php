@@ -16,13 +16,18 @@ class JobController extends Controller
     {
         $query = Job::with(['languages', 'locations', 'categories', 'attributes', 'attributeValues']);
         
-        try {
-            $filterBuilder->applyFilters($query, $request->input('filter'));
-            $jobs = $query->paginate(10);
+        if ($request->input('filter')) {
+            try {
+                $filterBuilder->applyFilters($query, $request->input('filter'));
+                $jobs = $query->paginate(10);
+            }
+            catch (\Exception $e) {
+                Log::error("Invalid filters for jobs api | filter query: {$request->input('filter')}");
+                return $this->failed($e->getMessage());
+            }
         }
-        catch (\Exception $e) {
-            Log::error("Invalid filters for jobs api | filter query: {$request->input('filter')}");
-            return $this->failed($e->getMessage());
+        else {
+            $jobs = $query->paginate(10);
         }
 
         return $this->paginate('Jobs fetched successfully.', JobResource::collection($jobs));
