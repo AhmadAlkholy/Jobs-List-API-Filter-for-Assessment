@@ -19,12 +19,12 @@ class FilterBuilderService
     private function splitByLogicalOps($expression)
     {
         if (str_contains($expression, ' or ') || str_contains($expression, ' and ')) {
-            $dividedByOrExpressions = $this->splitBy($expression, ' or ');
+            $aplittedByOrExpressions = $this->splitBy($expression, ' or ');
 
-            if (count($dividedByOrExpressions) > 1) {
+            if (count($aplittedByOrExpressions) > 1) {
                 $ops = [];
-                foreach ($dividedByOrExpressions as $dividedByOrExpression) {
-                    $ops['or'][] = $this->splitByAnd($dividedByOrExpression);
+                foreach ($aplittedByOrExpressions as $aplittedByOrExpression) {
+                    $ops['or'][] = $this->splitByAnd($aplittedByOrExpression);
                 }
                 return $ops;
             }
@@ -40,12 +40,12 @@ class FilterBuilderService
     {
         $splittedByAnd = $expression;
 
-        $dividedByAndExpressions = $this->splitBy($expression, ' and ');
-        if (count($dividedByAndExpressions) > 1) {
+        $splittedByAndExpressions = $this->splitBy($expression, ' and ');
+        if (count($splittedByAndExpressions) > 1) {
             $ands = [];
-            foreach ($dividedByAndExpressions as $dividedByAndExpression) {
-                $dividedByAndExpression = $this->removeParentheses($dividedByAndExpression);
-                $ands['and'][] = $this->splitByLogicalOps($dividedByAndExpression);
+            foreach ($splittedByAndExpressions as $splittedByAndExpression) {
+                $splittedByAndExpression = $this->removeParentheses($splittedByAndExpression);
+                $ands['and'][] = $this->splitByLogicalOps($splittedByAndExpression);
             }
             $splittedByAnd = $ands;
         }
