@@ -2,47 +2,50 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Providers\RouteServiceProvider;
+use App\Utils\UserTypeUtil;
+use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $guard = 'user';
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'password', 'fcm_token'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function role()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(UserRole::class, 'role_id');
+    }
+
+    public function isAuthorized($route_name)
+    {
+        $route_name = explode('/', $route_name)[0];
+        return $this->is_super_user ||
+                DB::table('user_role_permissions')
+                    ->where('route_name', 'LIKE', $route_name)
+                    ->join('user_roles', 'user_roles.id', '=', 'user_role_permissions.role_id')
+                    ->where('user_roles.id', $this->role_id)
+                    ->exists();
+    }
+
+    public function getImageUrl()
+    {
+        return $this->image ? URL::asset($this->image) : URL::asset('images/placeholders/user.png');
+    }
+
+    public function mainPageRoute()
+    {
+        return route('home');
     }
 }
