@@ -1,66 +1,263 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Job Listing API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=for-the-badge&logo=php&logoColor=white)
 
-## About Laravel
+A robust Laravel API for job listings with advanced filtering capabilities across standard fields, relationships, and dynamic attributes.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Table of Contents
+- [Features](#features)
+- [API Documentation](#api-documentation)
+- [Filtering Syntax](#filtering-syntax)
+- [Examples](#examples)
+- [Installation](#installation)
+- [Database Schema](#database-schema)
+- [Testing](#testing)
+- [License](#license)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Comprehensive Job Model** with all required fields
+- **Many-to-Many Relationships**:
+  - Languages
+  - Locations 
+  - Categories
+- **EAV (Entity-Attribute-Value) System** for dynamic attributes
+- **Advanced Filtering API** with support for:
+  - Standard field filtering
+  - Relationship filtering
+  - EAV attribute filtering
+  - Logical operators (AND/OR) and grouping
+- **Optimized Query Building** with JobFilterService
 
-## Learning Laravel
+## API Documentation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### GET `/api/jobs`
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Returns paginated job listings with filtering capabilities.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**Parameters:**
+| Parameter | Type     | Description |
+|-----------|----------|-------------|
+| `filter`  | string   | Filter expression (see syntax below) |
+| `page`    | integer  | Page number (default: 1) |
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**Example Response:**
+```json
+{
+    "message": "Jobs fetched successfully.",
+    "data": [
+        {
+            "id": 6,
+            "title": "Hoist and Winch Operator",
+            "description": "Quae voluptatem id laborum qui dolor itaque similique cupiditate.",
+            "salary_min": "75925.00",
+            "salary_max": "174113.00",
+            "is_remote": false,
+            "job_type": "part-time",
+            "status": "draft",
+            "published_at": null,
+            "created_at": "2025-03-29T08:37:47.000000Z",
+            "languages": [
+                {
+                    "id": 2,
+                    "name": "Java"
+                },
+                {
+                    "id": 5,
+                    "name": "Ruby"
+                }
+            ],
+            "categories": [
+                {
+                    "id": 2,
+                    "name": "Mobile Development"
+                }
+            ],
+            "locations": [
+                {
+                    "id": 4,
+                    "city": "Kingberg",
+                    "state": "Oregon",
+                    "country": "Nauru"
+                }
+            ],
+            "attributes": [
+                {
+                    "id": 58,
+                    "name": "mollitia",
+                    "type": "date",
+                    "options": null,
+                    "value": "2023-06-29"
+                }
+            ]
+        }
+    ],
+    "meta": {
+        "current_page": 1,
+        "per_page": 10,
+        "total": 1,
+        "last_page": 1
+    },
+    "errors": []
+}
+```
 
-### Premium Partners
+## Filtering Syntax
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+The API supports advanced filtering through a expressive query parameter syntax. All filters are passed via the `filter` query parameter.
 
-## Contributing
+### Basic Field Filtering
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### Text Fields (`title`, `description`, `company_name`)
+- Equality: `field=value`  
+  Example: `title=Developer`
+- Inequality: `field!=value`  
+  Example: `company_name!=Acme`
+- Contains: `field LIKE value`  
+  Example: `description LIKE remote`
 
-## Code of Conduct
+#### Numeric Fields (`salary_min`, `salary_max`)
+- Equality: `field=value`  
+  Example: `salary_min=50000`
+- Comparisons: `field>value`, `field>=value`, `field<value`, `field<=value`  
+  Example: `salary_max<=100000`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+#### Boolean Fields (`is_remote`)
+- Equality: `field=1|0`  
+  Example: `is_remote=1`
 
-## Security Vulnerabilities
+#### Enum Fields (`job_type`, `status`)
+- Equality: `field=value`  
+  Example: `job_type=full-time`
+- Multiple values: `field IN (value1,value2)`  
+  Example: `status IN (published,archived)`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Date Fields (`published_at`, `created_at`)
+- Equality: `field=YYYY-MM-DD`  
+  Example: `published_at=2023-01-01`
+- Comparisons: `field>YYYY-MM-DD`, etc.  
+  Example: `created_at>=2023-01-01`
 
-## License
+### Relationship Filtering
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+#### Languages
+- Has any of: `languages HAS_ANY (value1,value2)`  
+  Example: `languages HAS_ANY (PHP,JavaScript)`
+- Existence: `languages EXISTS`  
+  (Returns jobs with any languages)
+
+#### Locations
+- Is any of: `locations IS_ANY (value1,value2)`  
+  Example: `locations IS_ANY (New York,Remote)`
+  
+#### Categories
+- Is any of: `categories IS_ANY (value1,value2)`  
+  Example: `categories IS_ANY (Software Development,Project Management)`
+
+### EAV Attribute Filtering
+
+Prefix attribute names with `attribute:`:
+
+- Text: `attribute:field=value`  
+  Example: `attribute:certification=required`
+- Number: `attribute:field>value`  
+  Example: `attribute:years_experience>=5`
+- Boolean: `attribute:field=1|0`  
+  Example: `attribute:security_clearance=1`
+- Select: `attribute:field IN (value1,value2)`  
+  Example: `attribute:education_level IN (bachelor,master)`
+
+### Logical Operators
+
+- AND: `condition1 AND condition2`  
+  Example: `salary_min>50000 AND is_remote=1`
+- OR: `condition1 OR condition2`  
+  Example: `job_type=contract OR job_type=freelance`
+- Grouping: `(condition1 OR condition2) AND condition3`  
+  Example: `(job_type=full-time OR salary_min>80000) AND locations IS_ANY (Remote)`
+
+## Examples
+
+### Simple Filters
+1. Remote jobs:  
+   `/api/jobs?filter=is_remote=1`
+
+2. Full-time jobs in NY:  
+   `/api/jobs?filter=job_type=full-time AND locations IS_ANY (New York)`
+
+### Intermediate Filters
+3. PHP or Python jobs paying $80k+:  
+   `/api/jobs?filter=(languages HAS_ANY (PHP,Python)) AND salary_min>=80000`
+
+4. Jobs requiring 5+ years experience:  
+   `/api/jobs?filter=attribute:years_experience>=5`
+
+### Complex Filters
+5. Senior remote developer positions:  
+    `/api/jobs?filter=
+(job_type=full-time AND salary_min>=90000)
+AND (languages HAS_ANY (JavaScript,TypeScript))
+AND is_remote=1
+AND attribute:level=senior`
+
+6. Urgent contract jobs in tech hubs:  
+`/api/jobs?filter=
+(job_type=contract AND attribute:is_urgent=1)
+AND (locations IS_ANY (San Francisco,New York,London))
+AND categories=Technology`
+
+## 🛠️ Installation
+
+### Requirements
+- PHP 8.1+
+- Composer 2.0+
+- MySQL 8.0+ / PostgreSQL 13+
+- Redis (for caching)
+
+
+<br/>
+
+### Setup
+
+1\. Clone the repository:
+```bash
+git clone https://github.com/AhmadAlkholy/Jobs-List-API-Filter-for-Assessment
+```
+
+<br/>
+
+2\. Install dependencies:
+```bash
+composer install
+```
+
+<br/>
+
+3\. Configure environment:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+Make sure to add your database credentials in .env file.
+
+<br/>
+
+4\. Set up database:
+```bash
+php artisan migrate:fresh --seed
+```
+The seeded data might look weird specially the attribute names check the generate database before starting to test the api.
+
+<br/>
+
+5\. Start development server:
+```bash
+php artisan serve
+```
+<br/>
+
+## 📜 License
+
+MIT License. See [LICENSE](https://opensource.org/license/mit) for details.
