@@ -22,8 +22,8 @@ class JobController extends Controller
                 $jobs = $query->paginate(10);
             }
             catch (\Exception $e) {
-                Log::error("Invalid filters for jobs api | filter query: {$request->input('filter')}");
-                return $this->failed($e->getMessage());
+                Log::error("Invalid filters for jobs api | error: {$e->getMessage()} | filter query: {$request->input('filter')}");
+                return $this->failed("Invalid filters.", [], 400);
             }
         }
         else {
